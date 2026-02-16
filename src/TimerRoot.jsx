@@ -1,18 +1,37 @@
-import React, { useRef, useState } from "react";
-import { FaPlay } from "react-icons/fa";
+import React, { useEffect, useRef, useState } from "react";
+import { FaPause, FaPlay } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { settime } from "./redux/Feature";
+import { RiResetRightFill } from "react-icons/ri";
 
 const TimerRoot = () => {
-  const [time, setTime] = useState("000000"); 
+  // const [time, setTime] = useState("000000"); 
   // internal raw number (HHMMSS without :)
 
+  const [isrunning, setisrunning] = useState(false);
+
+ 
+
+  const dispatch = useDispatch();
+  const moment=useSelector((state)=>state.timerx.time)
+
   const intervalref = useRef(null);
+
+    useEffect(() => {
+  return () => {
+    if (intervalref.current) clearInterval(intervalref.current);
+  };
+}, []);
+
+
 
   const handleChange = (e) => {
 
     const value = e.target.value.replace(/\D/g, "");
-    let newvalue= (time+value).slice(-6);
+    let newvalue= (moment+value).slice(-6);
     console.log(newvalue);
-    setTime(newvalue);
+    // setTime(newvalue);
+    dispatch(settime(newvalue));
 
     
    
@@ -37,23 +56,40 @@ const TimerRoot = () => {
   const m = Math.floor((totalseconds % 3600) / 60);
   const s = totalseconds % 60;
 
-  setTime(
-    String(h).padStart(2, "0") +
+
+ 
+
+  const formattedmomemt =  String(h).padStart(2, "0") +
     String(m).padStart(2, "0") +
-    String(s).padStart(2, "0")
-  );
+    String(s).padStart(2, "0");
+
+  dispatch(settime(formattedmomemt ));
 }, 1000);
 
+  }
+
+
+  const reseter = () =>{
+      if (intervalref.current) {
+    clearInterval(intervalref.current);
+    intervalref.current = null;
+    setisrunning(false);
+     dispatch(settime("000000"));
+  }
   }
 
   const handleplay = () =>{
     console.log("jjjkk");
 
+    if(isrunning==false){
+
+          setisrunning(true);
+
     let totalseconds ;
 
-    const hours = parseInt(time.slice(0,2));
-    const minutes = parseInt(time.slice(2,4));
-    const seconds = parseInt(time.slice(4,6));
+    const hours = parseInt(moment.slice(0,2));
+    const minutes = parseInt(moment.slice(2,4));
+    const seconds = parseInt(moment.slice(4,6));
 
     let totalsecondofhour = hours*60*60;
     let totalsecondofminutes = minutes*60;
@@ -62,28 +98,48 @@ const TimerRoot = () => {
 
  runtimer(totalseconds);
 
-// let newhour = Math.floor(totalseconds / 3600);
-// let newminute = Math.floor((totalseconds % 3600) / 60);
-// let newsecond = totalseconds % 60;
+    }
 
-// setTime(
-//   String(newhour).padStart(2, "0") +
-//   String(newminute).padStart(2, "0") +
-//   String(newsecond).padStart(2, "0")
-// );
+  
+
+
    
    
   }
 
+  const handlePause = () => {
+  if (intervalref.current) {
+    clearInterval(intervalref.current);
+    intervalref.current = null;
+    setisrunning(false);
+  }
+};
+
      const handleplay2 = (totalmoment) =>{
+
+      setisrunning(true);
+
+       if(intervalref.current){
+    clearInterval(intervalref.current);
+    intervalref.current = null;
+    
+  }
+
+  // setisrunning(!isrunning);
     
 
     
+
+
+
+  
+
+    runtimer(totalmoment);
 
 
 
  
-      runtimer(totalmoment);
+    
 
     
  
@@ -92,7 +148,7 @@ const TimerRoot = () => {
   }
 
   // Format HH:MM:SS
-  const formattedTime = `${time.slice(0,2)}:${time.slice(2,4)}:${time.slice(4,6)}`;
+  const formattedTime = `${moment.slice(0,2)}:${moment.slice(2,4)}:${moment.slice(4,6)}`;
 
   return (
     <div className="flex items-center justify-center min-h-screen gap-4 bg-gradient-to-br from-red-500 via-orange-500 to-yellow-400">
@@ -105,13 +161,48 @@ const TimerRoot = () => {
             className="rounded-2xl focus:outline-none focus:ring-4 focus:ring-yellow-300 text-yellow-300 text-7xl font-bold w-[420px] h-[120px] bg-gradient-to-br from-red-600 to-orange-600 text-center shadow-xl border-4 border-yellow-400/50 hover:shadow-2xl transition-all duration-300"
           />
 
-          <button 
-            onClick={handleplay} 
+          {
+            isrunning ?
+                   <button 
+
+                   onClick={handlePause}
+           
             className="bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-12 h-[120px] rounded-2xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 border-4 border-yellow-400/50"
           >
-            <FaPlay size={32} className="text-yellow-300" />
-          </button>
+          
+             <FaPause size={32} className="text-yellow-300" />
+            </button >
+            :
+            
+            <button
+             onClick={handleplay} 
+             className="bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-12 h-[120px] rounded-2xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 border-4 border-yellow-400/50"
+            >
+             <FaPlay size={32} className="text-yellow-300" />
 
+
+            </button>
+           
+          
+
+           
+          }
+
+    <button
+  onClick={reseter}
+  className="bg-gradient-to-br from-purple-500 to-indigo-600
+             hover:from-purple-600 hover:to-indigo-700
+             text-white px-12 h-[120px]
+             rounded-2xl shadow-lg hover:shadow-2xl
+             transform hover:scale-105
+             transition-all duration-300
+             border-4 border-yellow-400/50"
+>
+  <RiResetRightFill size={32} className="text-yellow-300" />
+</button>
+
+
+       
           <div className="flex flex-col gap-4">
             <button 
               onClick={()=>handleplay2(3900)} 
@@ -137,6 +228,7 @@ const TimerRoot = () => {
             >
               4 Hour 20 minutes
             </button>
+           
           </div>
         </div>
       </div>
